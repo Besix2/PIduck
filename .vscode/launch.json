@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Run as Root",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [],
+            "env": {},
+            "cwd": "${workspaceFolder}",
+            "pythonPath": "/usr/bin/python3",
+            "sudo": true
+        }
+    ]
+}
