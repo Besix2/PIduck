@@ -10,12 +10,32 @@ with open('keycodes.json') as f:
 
 
 def craft_packet(string, keycodes):
-    if isinstance(keycodes[string], list):
-        keycode = int(keycodes[string][0], 16)
-        modifier = int(keycodes[string][1], 16)
-    else:
+    special_keylist = ["ENTER", "ESCAPE", "PAUSE BREAK", "PRINTSCREEN", "MENU APP", "F1", "F2", "F3", "F4", "F5", "F6",
+                       "F7", "F8", "F9", "F10", "F11", "F12"] + \
+                      ["UP", "DOWN", "LEFT", "RIGHT", "UPARROW", "DOWNARROW", "LEFTARROW", "RIGHTARROW", "PAGEUP",
+                       "PAGEDOWN", "HOME", "END", "INSERT", "DELETE", "DEL", "BACKSPACE", "TAB", "SPACE"] + \
+                      ["SHIFT", "ALT", "CONTROL", "CTRL", "COMMAND", "WINDOWS", "GUI"] + \
+                      ["CAPSLOCK", "NUMLOCK", "SCROLLOCK"]
+    
+    modifier = int("0x00", 16)
+    if string in special_keylist:
+        if isinstance(keycodes[string], list):
+            keycode = int(keycodes[string][0], 16)
+            modifier = int(keycodes[string][1], 16)   
+
+        else:
+             keycode = int(keycodes[string], 16)
+    elif string.isupper():
+        modifier = int("0x02", 16)
+        string = string.lower()
         keycode = int(keycodes[string], 16)
-        modifier = int("0x00", 16)
+    else:    
+        if isinstance(keycodes[string], list):
+            keycode = int(keycodes[string][0], 16)
+            modifier = int(keycodes[string][1], 16)   
+
+        else:
+             keycode = int(keycodes[string], 16)
     return bytes([modifier, 0x00, keycode, 0x00, 0x00, 0x00, 0x00, 0x00])
 
 def check_variable(char):
@@ -38,9 +58,7 @@ def WRITE(string, keycodes):
         for char in string:
             packet = craft_packet(char, keycodes)
             f.write(packet)
-            time.sleep(0.01)
-        f.write(bytes([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
-
+            f.write(bytes([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
 
 def STRINGLN(string, keycodes):
    with open('/dev/hidg0', 'wb') as f:
@@ -53,12 +71,13 @@ def STRINGLN(string, keycodes):
         for char in string:
             packet = craft_packet(char, keycodes)
             f.write(packet)
-            time.sleep(0.01)
-            print("1")
+            f.write(bytes([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
+        f.flush()
+        time.sleep(0.1)
         f.write(bytes([0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x00, 0x00]))
         f.write(bytes([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
+
 def special_keys_write(string, keycodes):
-    print(string)
     string_split = string.split()
     with open('/dev/hidg0', 'wb') as f:
         if len(string_split) == 1:
@@ -67,15 +86,32 @@ def special_keys_write(string, keycodes):
         elif string == "GUI r" or string == "WINDOWS r":
             f.write(bytes([0x08, 0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0x00]))
             f.write(bytes([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
-            print("check 2")
         else:
-            keys = []
+            mkeys = []
+            nkeys = [0x04]
             for i in string_split:
-                keys.append(craft_packet(i, Keycodes))
-            for key in keys:
-                f.write(bytes(key))
+                if isinstance(keycodes[i], list):
+                    mkeys.append(int(keycodes[i][1], 16))
+                else:
+                    nkeys.append(int(keycodes[i], 16))
+           
+            if len(mkeys) > 1:
+                modifiers = reduce(lambda x, y: x | y, mkeys)
+            else:
+                modifiers = mkeys[0]
+ 
+            if len(nkeys) == 1:
+                keycode = nkeys[0]
+            else:
+                 keycode = []
+                 for key in nkeys:
+                    keycode.append(key)
+                    keycode.append(0x00)
+                    keycode.pop()
+             
+            command = bytes([modifiers, 0x00, *keycode, 0x00, 0x00, 0x00, 0x00, 0x00])
+            f.write(command)
             f.write(bytes([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
-
 
 def DELAY(string):
     time.sleep(int(string) / 1000)
@@ -124,9 +160,12 @@ def callf(script):
                       ["SHIFT", "ALT", "CONTROL", "CTRL", "COMMAND", "WINDOWS", "GUI"] + \
                       ["CAPSLOCK", "NUMLOCK", "SCROLLOCK"]
     print(repr(script))
-    substrings = script.split('\n')
+    substrings = []
+    for string in script.split('\n'):
+        if string:
+            substrings.append(string)
     print(substrings)
-    del substrings[-1]
+    # del substrings[-1]
     for task in substrings:
         print(repr(task))
         task_split = task.split()
@@ -138,17 +177,15 @@ def callf(script):
             DELAY(task_split[1])
         if task_split[0] == "STRING":
             WRITE(" ".join(task_split[1:]), Keycodes)
-            print("check")
         if task_split[0] == "STRINGLN":
             STRINGLN(" ".join(task_split[1:]), Keycodes)
         for i in special_keylist:
             if i == task_split[0]:
                 special_keys_write(task, Keycodes)
-                print(task)
-                print(i)
+
 
         if task_split[0] == "INJECT_MOD":
-            special_keys_write(task_split[1], Keycodes)
+             special_keys_write(task_split[1], Keycodes)
 
 with open("payload.txt", "r") as payload:
     callf(payload.read())

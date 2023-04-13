@@ -10,7 +10,7 @@
             "args": [],
             "env": {},
             "cwd": "${workspaceFolder}",
-            "pythonPath": "/usr/bin/python3",
+            "python": "/usr/bin/python3",
             "sudo": true
         }
     ]
