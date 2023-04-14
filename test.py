@@ -133,25 +133,43 @@ def VAR(variable, value):  # use different splitting
     variables[variable] = value
 
 def CONDITIONS(condition):
-    e_condition = re.search(r'IF\s+(.*?)\s+THEN', condition).group(1)
+    condition_split = condition.split("\n")
+    i_condition = re.search(r'IF\s+(.*?)\s+THEN', condition_split[0]).group(1)
     for i in variables:
-        if i in e_condition:
-            e_condition = e_condition.replace(i, variables[i])
+        if i in i_condition:
+            i_condition = i_condition.replace(i, variables[i])
     for e in constants:
-        if e in e_condition:
-            e_condition = e_condition.replace(e, constants[e])
-    if "||" in e_condition:
-        e_condition = e_condition.replace("||", "or")
-    if "$$" in e_condition:
-        e_condition = e_condition.replace("||", "and")
-    if "^" in e_condition:
-        e_condition = e_condition.replace("||", "**")
-    if eval(e_condition):
-        match = re.search(r'THEN\s+(.*?)\s+END_IF', condition, flags=re.DOTALL)
-        if match:
-            result = match.group(1)
-            callf(result)
-
+        if e in i_condition:
+            i_condition = i_condition.replace(e, constants[e])
+    if "||" in i_condition:
+        i_condition = i_condition.replace("||", "or")
+    if "$$" in i_condition:
+        i_condition = i_condition.replace("||", "and")
+    if "^" in i_condition:
+        i_condition = i_condition.replace("||", "**")
+    if "ELSE" in condition:
+       if eval(i_condition):
+            match = re.search(r'THEN\s+(.*?)\s+END_IF', condition, flags=re.DOTALL)
+            if match: 
+                result = match.group(1)
+                callf(e_result)
+       else:
+           for i in condition_split:
+               if "ELSE" in i:
+                   e_condition = re.search(r'IF\s+(.*?)\s+THEN', condition_split[condition_split.index(i)]).group(1)
+                   if eval(e_condition):
+                        e_match = re.search(r'THEN\s+(.*?)\s+END_IF', condition, flags=re.DOTALL)
+                        if e_match: 
+                            e_result = e_match.group(1)
+                            callf(e_result)    
+           
+    else:
+        if eval(i_condition):
+            match = re.search(r'THEN\s+(.*?)\s+END_IF', condition, flags=re.DOTALL)
+            if match:
+                result = match.group(1)
+                callf(e_result)
+                
 def callf(script):
     special_keylist = ["ENTER", "ESCAPE", "PAUSE BREAK", "PRINTSCREEN", "MENU APP", "F1", "F2", "F3", "F4", "F5", "F6",
                        "F7", "F8", "F9", "F10", "F11", "F12"] + \
