@@ -1,10 +1,7 @@
-import time
-time.sleep(2)
-keys = [[0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],  # Key 1
-        [0x00, 0x00, 0x15, 0x00, 0x00, 0x00, 0x00, 0x00],
-        [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]]  # Key 3
+from readline import set_completer
 
-with open('/dev/hidg0', 'wb') as f:
-    for key in keys:  # Send the first 3 keys
-        f.write(bytes(key))
 
+s_condition = "Function hallo(123)"
+i_condition = s_condition.split()[1]
+i_condition = i_condition[:i_condition.find("(")] + "()"
+print(i_condition)
