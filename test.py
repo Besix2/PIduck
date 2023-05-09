@@ -9,7 +9,7 @@ import inspect
 
 constants = {}
 variables = {}
-functions = {}
+functionsl = []
 
 with open("keycodes.json") as f:
     Keycodes = json.load(f)
@@ -91,14 +91,23 @@ def check_variable(string):
         "RANDOM_SPECIAL",
         "RANDOM_CHAR",
     ]
-    for g in string.split(" "):
-        if g in variables:
-            default_variables()
-            string = string.replace(g, variables[g])
-        elif g in constants:
-            string = string.replace(g, constants[g])
-        else:
-            pass
+    if len(string) > 1:
+        for g in string.split(" "):
+            if "(" or ")" in g:
+                g = g.replace("(", "")
+                g = g.replace(")", "")
+            if g in variables:
+                default_variables()
+                string = string.replace(g, f"variables[{g!r}]")
+            elif g in constants:
+                string = string.replace(g, f"constants[{g}]")
+            else:
+                pass
+    else:
+        if string in variables:
+            string = variables[string]
+        if string in constants:
+            string = constants[string]
     return string
 
 
@@ -170,14 +179,24 @@ def DEFINE(constant, value):
 
 
 def VAR(variable, value):  # use different splitting
-    for i in value.split(" "):
-        if i in variables:
-            value = value.replace(i, variables[i])
-        if i in constants:
-            value = value.replace(i, constants[i])
 
-    if len(value) > 1:
-        value = eval(value)
+        
+    
+    for i in value.split(" "):
+        
+        if "(" or ")" in i:
+            i = i.replace("(", "")
+            i = i.replace(")", "")
+        if i in variables:
+            value = value.replace(i, str(variables[i]))
+        if i in constants:
+            value = value.replace(i, str(constants[i]))
+        if value.isdigit():
+                    if value.isnumeric():
+                        value = int(value)
+                    else:
+                        value = float(value)
+    
     variables[variable] = value
 
 
@@ -347,19 +366,22 @@ def CONDITIONS(condition):
                 callf(e_result)
 
 
+
 def LOOPS(loop):
     loop_split = loop.split("\n")
-    conditon = loop_split[0].split(" ")[1]
+    condition = loop_split[0].split("WHILE")[1].strip()
+    condition = check_variable(condition)
     start_index = loop.find(loop_split[1])
-    end_index = loop.find("END_IF")
-
+    end_index = loop.find("END_WHILE")
+    e_condition = loop[start_index:end_index]
+    e_condition = e_condition.replace(" ","")
     while eval(condition):
-        for i in loop_split[start_index:end_index]:
-            callf(i)
+        callf(e_condition)
+
 
 
 def default_variables():
-    VAR("RANDOM_LOWERCASE_LETTER", random.choice(string.ascii_lowercase, Keycodes))
+    VAR("RANDOM_LOWERCASE_LETTER", random.choice(string.ascii_lowercase))
     VAR("RANDOM_UPPERCASE_LETTER", random.choice(string.ascii_uppercase))
     VAR("RANDOM_LETTER", random.choice(string.ascii_letters))
     VAR("RANDOM_NUMBER", random.choice(string.digits))
@@ -370,15 +392,14 @@ def default_variables():
     punctuation = string.punctuation
     all_characters = lowercase_letters + uppercase_letters + digits + punctuation
     VAR("RANDOM_CHAR", random.choice(all_characters))
-    VAR(
-        "$_RANDOM_INT",
-        random.range(variables["$_RANDOM_MIN"], variables["$_RANDOM_MAX"]),
-    )
+    if "$_RANDOM_MIN" in variables:
+        VAR("$_RANDOM_INT", random.randrange(variables["$_RANDOM_MIN"], variables["$_RANDOM_MAX"]))
 
-def functions(string):
+def FUNCTIONS(string):
     s_condition = string.split("\n")
     i_condition = s_condition[0].split()[1]
     condition_name = re.sub(r'\(.*?\)', '', i_condition) 
+    functionsl.append(condition_name)
     e_condition = string[string.index(s_condition[1]):string.index("END_FUNCTION")]
     if "return" in string:
         function_string = f"def {i_condition}:\n\tcallf({e_condition}\n\treturn{functions[condition_name]})"
@@ -460,9 +481,9 @@ def callf(script):
         for task in substrings:
             task_split = task.split()
             if task_split[0] == "DEFINE":
-                DEFINE(task_split[1], " ".join(task_split[2:]), Keycodes)
+                DEFINE(task_split[1], " ".join(task_split[2:]))
             elif task_split[0] == "VAR":
-                VAR(task_split[1], " ".join(task_split[3:]), Keycodes)
+                VAR(task_split[1], " ".join(task_split[3:]))
             elif task_split[0] == "DELAY":
                 DELAY(task_split[1])
             elif task_split[0] == "STRING":
@@ -488,11 +509,18 @@ def callf(script):
                 exit()
             elif task_split[0] == "HOLD":
                 HOLD_RELASE(task_split[1], "HOLD")
+            elif task_split[0] == "FUNCTION":
+                sindex = script.find("FUNCTION")
+                eindex = script.find("END_FUNCTION")
+                extracted_condition = script[sindex : eindex + 12]
+                script = script.replace(extracted_condition, "")
+                FUNCTIONS(extracted_condition)
+                break
             elif task_split[0] == "RETURN":
                 caller_frame = inspect.currentframe().f_back
                 caller_name = caller_frame.f_code.co_name
                 return_value = check_variable(task_split[1])
-                functions[caller_name] = return_value
+                FUNCTIONS[caller_name] = return_value
             elif task_split[0] == "RELEASE":
                 HOLD_RELASE(task_split[1], "RELEASE")
             elif task_split[0] in lock_keys:
@@ -501,7 +529,10 @@ def callf(script):
             #     SAVE_RESTORE_LOCK_KEYS("save")
             # elif task_split[0] == "RESTORE_HOST_KEYBOARD_LOCK_STATE":
             #     SAVE_RESTORE_LOCK_KEYS("restore")
-
+            elif task_split[0] in variables:
+                VAR(task_split[0], task[task.index("=") + 2:])
+            elif task_split[0] in functionsl:
+                eval(task_split[0])
             for i in special_keylist:
                 if i == task_split[0]:
                     special_keys_write(task, Keycodes)
@@ -511,3 +542,5 @@ def callf(script):
 
 with open("payload.txt", "r") as payload:
     callf(payload.read())
+    
+
