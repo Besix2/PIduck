@@ -9,7 +9,7 @@ import inspect
 
 constants = {}
 variables = {}
-functionsl = []
+functionsl = {}
 
 with open("keycodes.json") as f:
     Keycodes = json.load(f)
@@ -97,7 +97,7 @@ def check_variable(string):
                 g = g.replace("(", "")
                 g = g.replace(")", "")
             if g in variables:
-                default_variables()
+            #     default_variables()
                 string = string.replace(g, f"variables[{g!r}]")
             elif g in constants:
                 string = string.replace(g, f"constants[{g}]")
@@ -178,25 +178,29 @@ def DEFINE(constant, value):
     constants[constant] = value
 
 
-def VAR(variable, value):  # use different splitting
+def VAR(variable, value):  # only loop if something is part of variuables
 
-        
     
+    if "(" or ")" in value:
+        value = value.replace("(", "")
+        value = value.replace(")", "")
     for i in value.split(" "):
-        
-        if "(" or ")" in i:
-            i = i.replace("(", "")
-            i = i.replace(")", "")
         if i in variables:
             value = value.replace(i, str(variables[i]))
         if i in constants:
             value = value.replace(i, str(constants[i]))
-        if value.isdigit():
-                    if value.isnumeric():
-                        value = int(value)
-                    else:
-                        value = float(value)
-    
+    if value.isdigit():
+                if value.isnumeric():
+                    value = int(value)
+                else:
+                    value = float(value)
+    if type(value) == str:             
+        if "+" in value or "-" in value or "*" in value or "/" in value:
+            if "(" or ")" in value:
+                value = value.replace("(", "")
+                value = value.replace(")", "")
+            value = eval(value)
+        
     variables[variable] = value
 
 
@@ -366,7 +370,6 @@ def CONDITIONS(condition):
                 callf(e_result)
 
 
-
 def LOOPS(loop):
     loop_split = loop.split("\n")
     condition = loop_split[0].split("WHILE")[1].strip()
@@ -374,10 +377,9 @@ def LOOPS(loop):
     start_index = loop.find(loop_split[1])
     end_index = loop.find("END_WHILE")
     e_condition = loop[start_index:end_index]
-    e_condition = e_condition.replace(" ","")
+    e_condition = e_condition.replace("\t","")
     while eval(condition):
         callf(e_condition)
-
 
 
 def default_variables():
@@ -388,7 +390,7 @@ def default_variables():
     VAR("RANDOM_SPECIAL", random.choice(string.punctuation))
     lowercase_letters = string.ascii_lowercase
     uppercase_letters = string.ascii_uppercase
-    digits = string.digits
+    digits = string.digitsu
     punctuation = string.punctuation
     all_characters = lowercase_letters + uppercase_letters + digits + punctuation
     VAR("RANDOM_CHAR", random.choice(all_characters))
@@ -398,14 +400,14 @@ def default_variables():
 def FUNCTIONS(string):
     s_condition = string.split("\n")
     i_condition = s_condition[0].split()[1]
-    condition_name = re.sub(r'\(.*?\)', '', i_condition) 
-    functionsl.append(condition_name)
+    condition_name = i_condition
     e_condition = string[string.index(s_condition[1]):string.index("END_FUNCTION")]
+    e_condition = e_condition.strip()
     if "return" in string:
         function_string = f"def {i_condition}:\n\tcallf({e_condition}\n\treturn{functions[condition_name]})"
     else:
-        function_string = f"def {i_condition}:\n\tcallf({e_condition})"
-    exec(function_string)
+        function_string = f"callf(\"{e_condition}\")"
+    functionsl[condition_name] = function_string
 
 
 def HOLD_RELEASE(string, state):
@@ -414,6 +416,9 @@ def HOLD_RELEASE(string, state):
     if state == "RELEASE":
         f.write(bytes([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
 
+
+def FUNCTION_CALL(function, script):
+    exec(functionsl[function])
 
 def callf(script):
     special_keylist = (
@@ -472,11 +477,14 @@ def callf(script):
     ]
 
     flag = True
+    loopiterations = 0
     while flag:
         substrings = []
         for string in script.split("\n"):
             if string:
                 substrings.append(string)
+        if loopiterations == len(substrings):
+            break        
         # del substrings[-1]
         for task in substrings:
             task_split = task.split()
@@ -496,13 +504,13 @@ def callf(script):
                 extracted_condition = script[sindex : eindex + 6]
                 script = script.replace(extracted_condition, "")
                 CONDITIONS(extracted_condition)
-                break
             elif task_split[0] == "WHILE":
                 sindex = script.find("WHILE")
                 eindex = script.find("END_WHILE")
                 extracted_condition = script[sindex : eindex + 9]
                 script = script.replace(extracted_condition, "")
                 LOOPS(extracted_condition)
+                break
             elif task_split[0] == "INJECT_MOD":
                 special_keys_write(task_split[1], Keycodes)
             elif task_split[0] == "STOP_PAYLOAD":
@@ -514,7 +522,9 @@ def callf(script):
                 eindex = script.find("END_FUNCTION")
                 extracted_condition = script[sindex : eindex + 12]
                 script = script.replace(extracted_condition, "")
+                script = script[sindex:]
                 FUNCTIONS(extracted_condition)
+                loopiterations = 0
                 break
             elif task_split[0] == "RETURN":
                 caller_frame = inspect.currentframe().f_back
@@ -532,15 +542,12 @@ def callf(script):
             elif task_split[0] in variables:
                 VAR(task_split[0], task[task.index("=") + 2:])
             elif task_split[0] in functionsl:
-                eval(task_split[0])
-            for i in special_keylist:
-                if i == task_split[0]:
-                    special_keys_write(task, Keycodes)
+                FUNCTION_CALL(task_split[0], script)
+            elif task_split[0] in special_keylist:
+                special_keys_write(task, Keycodes)        
             else:
                 flag = False
-
-
+            loopiterations += 1   
 with open("payload.txt", "r") as payload:
     callf(payload.read())
-    
-
+   
