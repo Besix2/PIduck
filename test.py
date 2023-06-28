@@ -1,3 +1,4 @@
+from email.policy import default
 import time
 import json
 import re
@@ -144,7 +145,7 @@ def special_keys_write(string, keycodes):
             f.write(bytes([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
         else:
             mkeys = []
-            nkeys = [0x04]
+            nkeys = []
             for i in string_split:
                 if isinstance(keycodes[i], list):
                     mkeys.append(int(keycodes[i][1], 16))
@@ -153,11 +154,13 @@ def special_keys_write(string, keycodes):
 
             if len(mkeys) > 1:
                 modifiers = reduce(lambda x, y: x | y, mkeys)
+            elif len(mkeys) == 0:
+                modifiers = 0x00
             else:
                 modifiers = mkeys[0]
 
             if len(nkeys) == 1:
-                keycode = nkeys[0]
+                keycode = nkeys
             else:
                 keycode = []
                 for key in nkeys:
@@ -179,27 +182,26 @@ def DEFINE(constant, value):
 
 
 def VAR(variable, value):  # only loop if something is part of variuables
-
-    
-    if "(" or ")" in value:
-        value = value.replace("(", "")
-        value = value.replace(")", "")
-    for i in value.split(" "):
-        if i in variables:
-            value = value.replace(i, str(variables[i]))
-        if i in constants:
-            value = value.replace(i, str(constants[i]))
-    if value.isdigit():
-                if value.isnumeric():
-                    value = int(value)
-                else:
-                    value = float(value)
-    if type(value) == str:             
-        if "+" in value or "-" in value or "*" in value or "/" in value:
-            if "(" or ")" in value:
-                value = value.replace("(", "")
-                value = value.replace(")", "")
-            value = eval(value)
+    if type(value) is not bool:
+        if "(" in value or ")" in value:
+            value = value.replace("(", "")
+            value = value.replace(")", "")
+        for i in value.split(" "):
+            if i in variables:
+                value = value.replace(i, str(variables[i]))
+            if i in constants:
+                value = value.replace(i, str(constants[i]))
+        if value.isdigit():
+                    if value.isnumeric():
+                        value = int(value)
+                    else:
+                        value = float(value)
+        if type(value) == str and len(value.split()) > 1:             
+            if "+" in value or "-" in value or "*" in value or "/" in value:
+                if "(" or ")" in value:
+                    value = value.replace("(", "")
+                    value = value.replace(")", "")
+                value = eval(value)
         
     variables[variable] = value
 
@@ -381,16 +383,18 @@ def LOOPS(loop):
     while eval(condition):
         callf(e_condition)
 
-
+ 
 def default_variables():
     VAR("RANDOM_LOWERCASE_LETTER", random.choice(string.ascii_lowercase))
     VAR("RANDOM_UPPERCASE_LETTER", random.choice(string.ascii_uppercase))
     VAR("RANDOM_LETTER", random.choice(string.ascii_letters))
     VAR("RANDOM_NUMBER", random.choice(string.digits))
     VAR("RANDOM_SPECIAL", random.choice(string.punctuation))
+    VAR("$_JITTER_MAX", "20")
+    VAR("$_JITTER_ENABLED", False)
     lowercase_letters = string.ascii_lowercase
     uppercase_letters = string.ascii_uppercase
-    digits = string.digitsu
+    digits = string.digits
     punctuation = string.punctuation
     all_characters = lowercase_letters + uppercase_letters + digits + punctuation
     VAR("RANDOM_CHAR", random.choice(all_characters))
@@ -488,7 +492,9 @@ def callf(script):
         # del substrings[-1]
         for task in substrings:
             task_split = task.split()
-            if task_split[0] == "DEFINE":
+            if variables["$_JITTER_ENABLED"] == True:
+                DELAY(random.randint(0,variables["$_JITTER_MAX"]))
+            elif task_split[0] == "DEFINE":
                 DEFINE(task_split[1], " ".join(task_split[2:]))
             elif task_split[0] == "VAR":
                 VAR(task_split[1], " ".join(task_split[3:]))
@@ -510,7 +516,7 @@ def callf(script):
                 extracted_condition = script[sindex : eindex + 9]
                 script = script.replace(extracted_condition, "")
                 LOOPS(extracted_condition)
-                break
+                
             elif task_split[0] == "INJECT_MOD":
                 special_keys_write(task_split[1], Keycodes)
             elif task_split[0] == "STOP_PAYLOAD":
@@ -535,6 +541,9 @@ def callf(script):
                 HOLD_RELASE(task_split[1], "RELEASE")
             elif task_split[0] in lock_keys:
                 LOCK_KEYS_STATE(task_split[0])
+            elif task_split[0] == "RESTART_PAYLOAD":
+                callf(script = script.replace("RESTART_PAYLOAD","",1))
+                exit()
             # elif task_split[0] == "SAVE_HOST_KEYBOARD_LOCK_STATE":
             #     SAVE_RESTORE_LOCK_KEYS("save")
             # elif task_split[0] == "RESTORE_HOST_KEYBOARD_LOCK_STATE":
@@ -548,6 +557,10 @@ def callf(script):
             else:
                 flag = False
             loopiterations += 1   
-with open("payload.txt", "r") as payload:
-    callf(payload.read())
+def main():
+    default_variables()
+    with open("payload.txt", "r") as payload:
+        callf(payload.read())
+        
+main()
    
