@@ -45,8 +45,8 @@ sudo ./system.sh
 When you want to change the payload simply connect the pi to your machine and change the payload.txt file(important it needs to be named payload.txt)
 
 ## To-Do
-fix small bugs
-make it available for more systems
-add a local server to configure the server on the run
-add currently not working ducky features
+fix small bugs  
+make it available for more systems  
+add a local server to configure the server on the run  
+add currently not working ducky features  
 
