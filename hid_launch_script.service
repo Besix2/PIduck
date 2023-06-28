@@ -1,0 +1,12 @@
+[Unit]
+Description=hid_launch_script
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/$USER/PIduck/test.py
+WorkingDirectory=/home/pi/PIduck
+Type=oneshot
+RemainAfterExit=yes
+
+[Install]
+WantedBy=default.target

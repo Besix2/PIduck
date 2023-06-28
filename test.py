@@ -1,4 +1,3 @@
-from email.policy import default
 import time
 import json
 import re
