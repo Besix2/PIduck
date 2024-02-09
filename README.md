@@ -30,7 +30,6 @@ chmod +x system.sh
 Execute configure.sh and after it finished reboot your system
 ```
 sudo ./configure.sh
-sudo reboot now
 ```
 After Rebooting place your payload in payload.txt
 ```
