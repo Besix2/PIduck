@@ -1,0 +1,11 @@
+[Unit]
+Description=start hid gadget after boot
+
+[Service]
+ExecStart=/usr/bin/start_gadget.sh
+Type=oneshot
+RemainAfterExit=yes
+ConditionPathExists=/sys/kernel/config/usb_gadget/gadget
+
+[Install]
+WantedBy=basic.target
