@@ -1,5 +1,5 @@
 #!/bin/bash
-cd 
+cd /sys/kernel/config/usb_gadget/
 mkdir -p gadget
 cd gadget
 echo 0x1d6b > idVendor # Linux Foundation

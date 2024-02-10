@@ -1,0 +1,14 @@
+[Unit]
+Description=hid_launch_script
+After=network.target
+
+[Service]
+User=root
+ExecStart=/bin/bash -c 'if [[ $(cat /usr/bin/hid-gadget/armed-test.txt) == "true" ]]; then /usr/bin/python3 /usr/bin/hid-gadget/test.py; fi'
+WorkingDirectory=/usr/bin/hid-gadget
+Type=oneshot
+RemainAfterExit=yes
+ExecPost=/bin/bash -c "echo \"false\" > /usr/bin/hid-gadget/armed-test.txt"
+
+[Install]
+WantedBy=default.target
