@@ -6,6 +6,7 @@ import string
 import os
 import select
 import inspect
+import sys
 
 constants = {}
 variables = {}
@@ -521,7 +522,7 @@ def callf(script):
             elif task_split[0] == "STOP_PAYLOAD":
                 exit()
             elif task_split[0] == "HOLD":
-                HOLD_RELASE(task_split[1], "HOLD")
+                HOLD_RELEASE(task_split[1], "HOLD")
             elif task_split[0] == "FUNCTION":
                 sindex = script.find("FUNCTION")
                 eindex = script.find("END_FUNCTION")
@@ -537,7 +538,7 @@ def callf(script):
                 return_value = check_variable(task_split[1])
                 FUNCTIONS[caller_name] = return_value
             elif task_split[0] == "RELEASE":
-                HOLD_RELASE(task_split[1], "RELEASE")
+                HOLD_RELEASE(task_split[1], "RELEASE")
             elif task_split[0] in lock_keys:
                 LOCK_KEYS_STATE(task_split[0])
             elif task_split[0] == "RESTART_PAYLOAD":
@@ -558,8 +559,13 @@ def callf(script):
             loopiterations += 1   
 def main():
     default_variables()
-    with open("payload.txt", "r") as payload:
-        callf(payload.read())
-        
-main()
+    if len(sys.argv) > 1 :
+        value = "STRING " + str(sys.argv[1])
+        callf(value)
+    else:
+        with open("payload.txt", "r") as payload:
+            callf(payload.read())
+
+if __name__ == "__main__":  
+    main()
    

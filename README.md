@@ -22,12 +22,12 @@ Open it
 ```
 cd Piduck
 ```
-Make configure.sh and system.sh executable
+Make configure.sh executable
 ```
 chmod +x configure.sh
 chmod +x system.sh
 ```
-Execute configure.sh and after it finished reboot your system
+Execute configure.sh and wait for it to reboot the system
 ```
 sudo ./configure.sh
 ```

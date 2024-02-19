@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <html lang="en">
+    <title> My Page </title>
+    <script src="https://kit.fontawesome.com/a37d12dfac.js" crossorigin="anonymous"></script>
+    <style>
+        body {
+            background-color: rgb(163, 145, 145);
+            font-size: 30px;
+            margin: 0;
+            padding: 0;
+        }
+        
+        header {
+            background-color: beige;
+            height: 70px;
+            display: flex;
+            justify-content: center;
+            align-items: center ;
+            box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+        }
+        ul {
+            list-style: none;
+            
+        }
+        nav {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            width: 70%; 
+        }
+        .nav-lis-parent {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            display: flex;
+            text-align: center;
+            justify-content: space-between;
+            flex: auto;
+            
+        }
+
+        .nav-lis {
+            flex: auto;
+            background-color: beige;
+        }
+        .nav-points {
+            text-decoration: none;
+            color: black;
+            background-color: beige;
+            font-family: "Mona Sans", "Helvetica Neue", Helvetica, Arial, sans-serif; 
+
+        }
+
+        .nav-points:hover {
+            color: rgb(85, 85, 85);
+        }
+        
+        
+        
+
+        .input-form-parent {
+            height: 800px;
+            position: absolute;
+            margin-top: 100px;
+            width: 100%;
+            align-items: center;
+            justify-content: center;
+            display: flex;
+        }
+
+        .input-field {
+            height: 550px;
+            width: 650px;
+            border: 0;
+            box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+            border-radius: 7px;
+            outline: 2px solid #000000;
+            font-family: "Mona Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 23px;
+            
+        }
+         
+        .run-button {
+            width: 200px;
+            height: 60px;
+            font-family: "Mona Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+            border-radius: 7px;
+            outline: 2px solid #000000;
+            text-decoration: none;
+            border: 0;
+            color: rgb(255, 255, 255);
+            font-size: 30px;
+            background-color: #53be00;
+            margin-top: 30px;
+        
+        }
+
+        .run-button:hover {
+            background-color: #93d163; 
+        }
+
+        .text-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+    </style>
+
+
+</head> 
+
+<body>
+    <header>
+        <nav>
+            <ul class="nav-lis-parent">
+                <li class="nav-lis"><a class="nav-points" href="{{ url_for('Home') }}">Home</a></li>
+                <li class="nav-lis"><a class="nav-points" href="">Scripts</a></li>
+                <li class="nav-lis"><a class="nav-points" href="">Settings?</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="input-form-parent">
+        <form id="text-form" action="{{ url_for('.submit') }}" class="text-form" method="post">
+            <textarea name="text" spellcheck="false" class="input-field" cols="30" rows="10"></textarea>
+            <button id="submit-button" class="run-button"><i class="fa-solid fa-play fa-xs" style="color: rgb(255, 255, 255); margin-right: 10px;"></i> run</button>
+        </form>
+    </div>
+</body>
+
+</html>
