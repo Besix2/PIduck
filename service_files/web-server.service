@@ -1,0 +1,12 @@
+[Unit]
+Description=Start webserver at boot
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/usr/bin/hid-gadget
+ExecStart=/usr/bin/hid-gadget/venv/bin/python app.py -h $(hostname -I | cut -d' ' -f1)
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

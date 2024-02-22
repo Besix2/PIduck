@@ -19,9 +19,28 @@ sudo systemctl start start-gadget.service
 sudo chmod +x arm-pi.sh
 #create direcotry for script files
 mkdir /usr/bin/hid-gadget
-#create armed check file
-touch /usr/bin/hid-gadget/armed-test.txt
 #move essential files
-mv static_files/. /web_server /usr/bin/hid-gadget 
+mv static_files/ /usr/bin/hid-gadget 
+mv web_server/* /usr/bin/hid-gadget 
+rm -r web_server
+#installing pip
+sudo apt-get install pip
+#making pip available
+venv_dir="/usr/bin/hid-gadget/venv"
+
+# Check if the virtual environment already exists
+if [ ! -d "$venv_dir" ]; then
+    echo "Creating virtual environment..."
+    python3 -m venv "$venv_dir"
+fi
+
+# Activate the virtual environment
+source "$venv_dir/bin/activate"
+
+# Install Flask if it's not already installed
+if ! python -c "import flask" &> /dev/null; then
+    echo "Installing Flask..."
+    pip install Flask
+fi
 #rebooting
 sudo reboot
