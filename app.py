@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for 
 import sys
 import subprocess
+import socket
 
 app = Flask(__name__)
 sys.path.insert(0, "/")
@@ -24,4 +25,4 @@ def submit():
         subprocess.run(["sudo", "python", "test.py", text_value], cwd="static_files")
         return render_template("home.html")
 if __name__ == '__main__':
-    app.run(host="0.0.0.0")
+    app.run(socket.gethostbyname(socket.gethostname()))
