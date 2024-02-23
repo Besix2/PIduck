@@ -492,7 +492,9 @@ def callf(script):
         # del substrings[-1]
         for task in substrings:
             task_split = task.split()
-            if variables["$_JITTER_ENABLED"] == True:
+            if task_split[0] == "REM":
+                continue
+            elif variables["$_JITTER_ENABLED"] == True:
                 DELAY(random.randint(0,variables["$_JITTER_MAX"]))
             elif task_split[0] == "DEFINE":
                 DEFINE(task_split[1], " ".join(task_split[2:]))
