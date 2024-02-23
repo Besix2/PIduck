@@ -25,4 +25,6 @@ def submit():
         subprocess.run(["sudo", "python", "test.py", text_value], cwd="static_files")
         return render_template("home.html")
 if __name__ == '__main__':
-    app.run(socket.gethostbyname(socket.gethostname()))
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("8.8.8.8", 80))
+    app.run(host=s.getsockname()[0])
