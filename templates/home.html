@@ -82,6 +82,7 @@
             font-size: 23px;
             white-space: nowrap;
             
+            
         }
          
         .run-button {
@@ -119,15 +120,15 @@
         <nav>
             <ul class="nav-lis-parent">
                 <li class="nav-lis"><a class="nav-points" href="{{ url_for('Home') }}">Home</a></li>
-                <li class="nav-lis"><a class="nav-points" href="">Scripts</a></li>
-                <li class="nav-lis"><a class="nav-points" href="">Settings?</a></li>
+                <li class="nav-lis"><a class="nav-points" href="{{ url_for('Scripts') }}">Scripts</a></li>
+                <li class="nav-lis"><a class="nav-points" href="{{ url_for('Settings') }}">Settings?</a></li>
             </ul>
         </nav>
     </header>
 
     <div class="input-form-parent">
         <form id="text-form" action="{{ url_for('.submit') }}" class="text-form" method="post">
-            <textarea name="text" spellcheck="false" class="input-field" cols="30" rows="10"></textarea>
+            <textarea name="text" spellcheck="false" class="input-field" cols="30" rows="10" value="" autocomplete=”off”></textarea>
             <button id="submit-button" class="run-button"><i class="fa-solid fa-play fa-xs" style="color: rgb(255, 255, 255); margin-right: 10px;"></i> run</button>
         </form>
     </div>

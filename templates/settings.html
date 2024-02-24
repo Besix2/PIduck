@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <html lang="en">
+    <title> My Page </title>
+    <script src="https://kit.fontawesome.com/a37d12dfac.js" crossorigin="anonymous"></script>
+    <style>
+        body {
+            background-color: rgb(163, 145, 145);
+            font-size: 30px;
+            margin: 0;
+            padding: 0;
+        }
+        
+        header {
+            background-color: beige;
+            height: 70px;
+            display: flex;
+            justify-content: center;
+            align-items: center ;
+            box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+        }
+        ul {
+            list-style: none;
+            
+        }
+        nav {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            width: 70%; 
+        }
+        .nav-lis-parent {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            display: flex;
+            text-align: center;
+            justify-content: space-between;
+            flex: auto;
+            
+        }
+
+        .nav-lis {
+            flex: auto;
+            background-color: beige;
+        }
+        .nav-points {
+            text-decoration: none;
+            color: black;
+            background-color: beige;
+            font-family: "Mona Sans", "Helvetica Neue", Helvetica, Arial, sans-serif; 
+
+        }
+
+        .nav-points:hover {
+            color: rgb(85, 85, 85);
+        }
+
+    </style>
+
+
+</head> 
+
+<body>
+    <header>
+        <nav>
+            <ul class="nav-lis-parent">
+                <li class="nav-lis"><a class="nav-points" href="{{ url_for('Home') }}">Home</a></li>
+                <li class="nav-lis"><a class="nav-points" href="{{ url_for('Scripts') }}">Scripts</a></li>
+                <li class="nav-lis"><a class="nav-points" href="{{ url_for('Settings') }}">Settings?</a></li>
+            </ul>
+        </nav>
+    </header>
+
+</body>
+
+</html>

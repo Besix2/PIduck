@@ -562,8 +562,9 @@ def callf(script):
 def main():
     default_variables()
     if len(sys.argv) > 1 :
-        value = "STRING " + str(sys.argv[1])
+        value = str(sys.argv[1])
         callf(value)
+        exit()
     else:
         with open("payload.txt", "r") as payload:
             callf(payload.read())
