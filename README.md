@@ -40,7 +40,7 @@ Execute system.sh(WARNING: the system is now armed that means it will start uppo
 sudo ./system.sh
 ```
 
-P.S. Also added a webserver for live execution just join the hotspot and open 
+P.S. Also added a webserver for live execution just join the hotspot and open hostname:5000
 
 ## Usage:
 When you want to change the payload simply connect the pi to your machine and change the payload.txt file(important it needs to be named payload.txt)
